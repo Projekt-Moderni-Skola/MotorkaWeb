@@ -1,39 +1,117 @@
 <!DOCTYPE html>
-<html lang="cs">
-  <head>
-    <meta charset = "UTF-8" />
-    <meta http-equiv = "X-UA-Compatible" content = "IE=edge" />
-    <meta name = "viewport" content = "width=device-width, initial-scale=1.0" />
-    <title>ZIDAN - main</title>
-    <link rel = "stylesheet" href = "assets/style.css" />
-    <link rel = "stylesheet" href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-    <script type = "text/javascript" src = "assets/scripts.js"></script>
-    
-    <style>
-      
-    </style>
-  </head>
-  
-  <body onload = display_ct();>
-    <div class = "hud">
-    <div class = "mapa"></div>
-    <div class = "info">
-      <div class = "left-arrow">&#8678</div>
-      <div class = "right-arrow">&#8680</div>
-      <div id = "ct" class = "time"></div>
-      <div class = "lightindicator1">
-        <i class='fas fa-lightbulb'></i>
-      </div>
-      <div class = "lightindicator2">
-        <i class='fas fa-lightbulb'></i>
-      </div>
-      <div class = "triangle">
-        <i class='fas fa-exclamation-triangle'></i>
-      </div>
-      <span class = "battery">100%</span>
-      </div>
-    </div>
-    </div>
-  </body>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static',filename='style/style.css') }}">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+        integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="tachometr">
+        <div class="numbers">
+            <div class="zero" id="number">0</div>
+            <div class="one" id="number">20</div>
+            <div class="two" id="number">40</div>
+            <div class="three" id="number">60</div>
+            <div class="four" id="number">80</div>
+            <div class="five" id="number">100</div>
+            <div class="six" id="number">120</div>
+            <div class="seven" id="number">140</div>
+            <div class="eight" id="number">160</div>
+            <div class="nine" id="number">180</div>
+            <div class="tem" id="number">200</div>
+            <div class="eleven" id="number">220</div>
+            <div class="twelve" id="number">240</div>
+        </div>
+        <div class="circle">
+        </div>
+        <div class="speeder" id="speed"></div>
+        <div class="middleman"></div>
+        <div class="pivot" id="pivot"></div>
+        <div class="hazards">
+            <div class="left"><img src="{{ url_for('static',filename='assets/leftIndicator.png') }}"></div>
+            <div class="right"><img src="{{ url_for('static',filename='assets/rightIndicator.png') }}"></div>
+        </div>
+        <div class="lights">
+            <div class="headlight" value="0"><img src="{{ url_for('static',filename='assets/headlights.png') }}"></div>
+            <div class="taillight" value="0"><img src="{{ url_for('static',filename='assets/taillights.png') }}"></div>
+
+        </div>
+        <div class="battery">
+            <div class="batteryText">Baterie </div><span class="percentage" id="batteryPercentage"><b></b></span>
+            <div class="outsideBat1"></div>
+            <div class="outsideBat2"></div>
+            <div class="inbat">
+                <div class="innerBattery" id="batteryRect"></div>
+            </div>
+        </div>
+
+        <div class="rectangles">
+            <div class="notoverflow">
+                <div class="leftRect1"></div>
+                <div class="leftRect2"></div>
+                <div class="rightRect1"></div>
+                <div class="rightRect2"></div>
+            </div>
+        </div>
+
+
+        <script>
+            $(document).ready(function () {
+                var socket = io();
+
+                socket.on('my_response', function (msg, cb) {
+                    if (msg.data["headlight"] == 1) {
+                        $(".headlight").css("filter", "invert(67%) sepia(96%) saturate(5045%) hue-rotate(101deg) brightness(105%) contrast(101%)")
+                    } else {
+                        $(".headlight").css("filter", "none")
+                    }
+
+                    if (msg.data["taillight"] == 1) {
+                        $(".taillight").css("filter", "invert(55%) sepia(45%) saturate(4248%) hue-rotate(155deg) brightness(96%) contrast(104%)")
+                    } else {
+                        $(".taillight").css("filter", "none")
+                    }
+
+                    if (msg.data["lefthazard"] == 1) {
+                        $(".left").addClass("blink")
+                    } else {
+                        $(".left").removeClass("blink")
+                    }
+
+                    if (msg.data["righthazard"] == 1) {
+                        $(".right").addClass("blink")
+                    } else {
+                        $(".right").removeClass("blink")
+                    }
+
+                    let batteryColor = getColor(msg.data["battery"] / 100)
+
+                    $("#batteryPercentage").html(msg.data["battery"] + "%")
+                    $("#batteryRect").css("width", msg.data["battery"] + "%")
+                    $("#batteryRect").css("background", batteryColor)
+                    $('#speed').html((msg.data["speed"]));
+                    $('#pivot').css("transform", "rotate(" + ((270 / 240) * msg.data["speed"] + 225) + "deg)");
+                    if (cb)
+                        cb();
+                });
+
+
+            });
+
+            function getColor(value) {
+                //value from 0 to 1
+                var hue = ((value) * 120).toString(10);
+                return ["hsl(", hue, ",100%,50%)"].join("");
+            }
+        </script>
+</body>
+
 </html>
