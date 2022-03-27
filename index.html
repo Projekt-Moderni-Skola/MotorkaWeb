@@ -68,6 +68,8 @@
                 var socket = io();
 
                 socket.on('my_response', function (msg, cb) {
+
+
                     if (msg.data["headlight"] == 1) {
                         $(".headlight").css("filter", "invert(67%) sepia(96%) saturate(5045%) hue-rotate(101deg) brightness(105%) contrast(101%)")
                     } else {

@@ -4,6 +4,7 @@ from flask import Flask, render_template, session
 from flask_socketio import SocketIO, emit
 import requests
 import os
+import json
 #import pyserial
 
 async_mode = None
@@ -16,18 +17,19 @@ thread = None
 thread_lock = Lock()
 
 
-
 def background_thread():
     try:
         while True:
             socketio.sleep(0.2) #dat 0.2
+            f = open("data.json", "r")
+            data = json.load(f)
 
-            speed = 33
-            battery = 54
-            tailLight = 1
-            headLight = 1
-            leftHazard = 1
-            rightHazard = 0
+            speed = data["speed"]
+            battery = data["battery"]
+            tailLight = data["taillight"]
+            headLight = data["headlight"]
+            leftHazard = data["lefthazard"]
+            rightHazard = data["righthazard"]
 
             socketio.emit('my_response',
                         {'data': {
