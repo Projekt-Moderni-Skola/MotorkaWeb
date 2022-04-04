@@ -197,7 +197,7 @@ body {
   width: 10px;
   background: #228ad5;
   transform: rotate(225deg);
-  transition: all 0.2s ease-in-out;
+  transition: all 0.8s ease-in-out;
   border-radius: 0 0 5px 5px;
   z-index: 3;
 }
